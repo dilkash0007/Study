@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { useAudio } from "./lib/stores/useAudio";
+import { useTimer } from "./lib/stores/useTimer";
 import GameLayout from "./components/layout/GameLayout";
 import HomePage from "./pages/HomePage";
 import StudyArena from "./pages/StudyArena";
@@ -18,6 +19,7 @@ import { Toaster } from "sonner";
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const { setBackgroundMusic, setHitSound, setSuccessSound } = useAudio();
+  const { syncTimerState } = useTimer();
 
   // Preload all audio resources
   useEffect(() => {
@@ -44,6 +46,31 @@ function App() {
     
     return () => clearTimeout(timer);
   }, [setBackgroundMusic, setHitSound, setSuccessSound]);
+  
+  // Set up the global timer background sync
+  useEffect(() => {
+    // Initial sync when app mounts
+    syncTimerState();
+    
+    // Set up regular sync for background processing (every second)
+    const syncInterval = setInterval(() => {
+      syncTimerState();
+    }, 1000);
+    
+    // Set up visibility change listener for when the app is minimized/restored
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncTimerState();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(syncInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [syncTimerState]);
 
   // Loading screen
   if (isLoading) {

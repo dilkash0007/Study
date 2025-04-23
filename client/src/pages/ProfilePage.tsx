@@ -418,7 +418,8 @@ const ProfilePage = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                {Object.values(AchievementCategory).map(category => {
+                {/* Group achievements by category */}
+                {['Study', 'Quest', 'Level', 'Streak'].map(category => {
                   const categoryAchievements = achievements.filter(a => a.category === category);
                   const unlockedInCategory = categoryAchievements.filter(a => a.isUnlocked).length;
                   

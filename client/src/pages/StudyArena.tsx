@@ -74,30 +74,11 @@ const StudyArena = () => {
                        timerMode === TimerMode.BREAK ? 300 : 900;
   const progressPercentage = ((totalSeconds - timeRemaining) / totalSeconds) * 100;
   
-  // Sync timer when component mounts or becomes visible
-  useEffect(() => {
-    // Initial sync when component mounts
-    syncTimerState();
-    
-    // Set up regular sync for background updates
-    const syncInterval = setInterval(() => {
-      syncTimerState();
-    }, 1000);
-    
-    // Set up visibility change listener for background processing
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncTimerState();
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      clearInterval(syncInterval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [syncTimerState]);
+  // Override formatTime function with the one from the timer store
+  // to avoid conflicts with the local one
+  const displayTime = formatTime;
+  
+  // No longer need to manually sync the timer as it's done at the App level
   
   // Update focusDuration when selectedMode changes
   useEffect(() => {
@@ -235,7 +216,7 @@ const StudyArena = () => {
       {/* Battle Arena */}
       <GameCard 
         className="mb-6 p-0 overflow-hidden" 
-        variant={sessionState === SessionState.COMPLETED ? "secondary" : "default"}
+        variant={sessionState === TimerState.COMPLETED ? "secondary" : "default"}
       >
         <div className="bg-gradient-to-b from-transparent to-black/50 p-5">
           {/* Battle graphics */}
@@ -243,7 +224,7 @@ const StudyArena = () => {
             {/* Player character */}
             <motion.div 
               className="absolute bottom-0 left-0 w-20 h-24"
-              animate={sessionState === SessionState.RUNNING ? {
+              animate={sessionState === TimerState.RUNNING ? {
                 y: [0, -5, 0],
                 transition: { duration: 2, repeat: Infinity }
               } : {}}
@@ -257,13 +238,13 @@ const StudyArena = () => {
                       <path d="M20 21v-2a7 7 0 0 0-14 0v2"></path>
                     </svg>
                   }
-                  animation={sessionState === SessionState.RUNNING ? "pulse" : "none"}
+                  animation={sessionState === TimerState.RUNNING ? "pulse" : "none"}
                   color="text-white"
                   size="lg"
                 />
                 
                 {/* Energy effect when studying */}
-                {sessionState === SessionState.RUNNING && (
+                {sessionState === TimerState.RUNNING && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-full h-full absolute animate-pulse-glow opacity-60 bg-primary rounded-full"></div>
                     <div className="w-24 h-24 absolute animate-subtle-rotate opacity-30">
@@ -386,16 +367,16 @@ const StudyArena = () => {
           <div className="text-center mb-3">
             <div className={cn(
               "font-mono text-4xl font-bold transition-colors duration-500",
-              sessionState === SessionState.RUNNING ? "text-primary" : 
-              sessionState === SessionState.PAUSED ? "text-yellow-400" :
-              sessionState === SessionState.COMPLETED ? "text-green-400" : "text-white"
+              sessionState === TimerState.RUNNING ? "text-primary" : 
+              sessionState === TimerState.PAUSED ? "text-yellow-400" :
+              sessionState === TimerState.COMPLETED ? "text-green-400" : "text-white"
             )}>
-              {formatTime(timeLeft)}
+              {displayTime(timeRemaining)}
             </div>
             <div className="text-sm text-gray-300 mb-3">
-              {sessionState === SessionState.RUNNING ? "Fighting Distraction..." : 
-               sessionState === SessionState.PAUSED ? "Battle Paused" :
-               sessionState === SessionState.COMPLETED ? "Victory! Distraction Defeated!" : "Ready to Battle"}
+              {sessionState === TimerState.RUNNING ? "Fighting Distraction..." : 
+               sessionState === TimerState.PAUSED ? "Battle Paused" :
+               sessionState === TimerState.COMPLETED ? "Victory! Distraction Defeated!" : "Ready to Battle"}
             </div>
             
             {/* Overall session progress */}
@@ -409,13 +390,13 @@ const StudyArena = () => {
           
           {/* Timer controls */}
           <div className="flex flex-wrap justify-center gap-2">
-            {sessionState === SessionState.READY && (
+            {sessionState === TimerState.READY && (
               <GameButton onClick={startTimer} isSuccess={true}>
                 Start Session
               </GameButton>
             )}
             
-            {sessionState === SessionState.RUNNING && (
+            {sessionState === TimerState.RUNNING && (
               <>
                 <GameButton variant="accent" onClick={pauseTimer}>
                   Pause
@@ -426,7 +407,7 @@ const StudyArena = () => {
               </>
             )}
             
-            {sessionState === SessionState.PAUSED && (
+            {sessionState === TimerState.PAUSED && (
               <>
                 <GameButton onClick={resumeTimer}>
                   Resume
@@ -437,7 +418,7 @@ const StudyArena = () => {
               </>
             )}
             
-            {sessionState === SessionState.COMPLETED && (
+            {sessionState === TimerState.COMPLETED && (
               <>
                 <GameButton onClick={resetTimer} isSuccess={true}>
                   New Session
@@ -462,13 +443,13 @@ const StudyArena = () => {
                   : "border-transparent hover:bg-white/5"
               )}
               onClick={() => {
-                if (sessionState === SessionState.READY) {
+                if (sessionState === TimerState.READY) {
                   setSelectedMode(mode);
                 } else {
                   toast.info("Finish or cancel current session first");
                 }
               }}
-              disabled={sessionState !== SessionState.READY}
+              disabled={sessionState !== TimerState.READY}
             >
               {mode.label}
             </button>
