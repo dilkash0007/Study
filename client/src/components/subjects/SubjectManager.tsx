@@ -5,7 +5,7 @@ import { GameButton } from '@/components/ui/game-button';
 import { useSubjects } from '@/lib/stores/useSubjects';
 import { cn } from '@/lib/utils';
 import { XpBadge } from '@/components/ui/xp-badge';
-import { Subject } from '@/types';
+import type { Subject } from '@/types';
 import { toast } from 'sonner';
 
 // List of available colors for subjects
