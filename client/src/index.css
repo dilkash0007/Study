@@ -1,0 +1,180 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base Colors */
+    --background: 263 85% 7%;
+    --foreground: 210 40% 98%;
+    
+    /* Card Colors */
+    --card: 260 60% 12%;
+    --card-foreground: 210 40% 98%;
+    
+    /* Popover Colors */
+    --popover: 260 60% 12%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary Colors - Deep Purple */
+    --primary: 265 80% 60%;
+    --primary-foreground: 210 40% 98%;
+    
+    /* Secondary Colors - Neon Blue */
+    --secondary: 180 100% 60%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    /* Muted Colors */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    /* Accent Colors - Warm Gold */
+    --accent: 43 89% 60%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    /* Destructive Colors */
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Border, Input, and Ring Colors */
+    --border: 265 30% 30%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 265 60% 60%;
+    
+    /* Chart Colors */
+    --chart-1: 265 80% 60%;
+    --chart-2: 180 100% 60%;
+    --chart-3: 43 89% 60%;
+    --chart-4: 320 80% 60%;
+    --chart-5: 140 70% 50%;
+    
+    /* Sidebar Colors */
+    --sidebar-background: 262 80% 12%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 265 80% 60%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 43 89% 60%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 265 30% 25%;
+    --sidebar-ring: 265 60% 60%;
+    
+    /* Border Radius */
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Hide scrollbar but allow scrolling */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Game UI Elements */
+@layer components {
+  .game-card {
+    @apply bg-card/50 backdrop-blur-md rounded-lg border border-primary/30 shadow-lg relative overflow-hidden;
+    box-shadow: 0 0 15px rgba(153, 69, 255, 0.3), 0 5px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .game-card:before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-60 pointer-events-none;
+  }
+  
+  .game-button {
+    @apply relative rounded-md px-4 py-2 font-medium transition-all duration-200 ease-out
+    bg-gradient-to-r from-primary to-primary/80 text-white 
+    hover:from-primary/90 hover:to-primary/70
+    shadow-[0_0_8px_2px_rgba(153,69,255,0.3)] hover:shadow-[0_0_12px_4px_rgba(153,69,255,0.4)]
+    active:shadow-[0_0_4px_1px_rgba(153,69,255,0.3)] active:scale-95;
+  }
+  
+  .game-button-secondary {
+    @apply game-button bg-gradient-to-r from-secondary to-secondary/80
+    shadow-[0_0_8px_2px_rgba(20,241,149,0.3)] hover:shadow-[0_0_12px_4px_rgba(20,241,149,0.4)]
+    active:shadow-[0_0_4px_1px_rgba(20,241,149,0.3)];
+  }
+  
+  .game-button-accent {
+    @apply game-button bg-gradient-to-r from-accent to-accent/80
+    text-black shadow-[0_0_8px_2px_rgba(255,187,56,0.3)] hover:shadow-[0_0_12px_4px_rgba(255,187,56,0.4)]
+    active:shadow-[0_0_4px_1px_rgba(255,187,56,0.3)];
+  }
+
+  .nav-icon {
+    @apply relative flex items-center justify-center w-12 h-12 rounded-full 
+    bg-gradient-to-br from-primary/50 to-primary/20
+    hover:from-primary/70 hover:to-primary/30
+    text-white transition-all duration-200
+    shadow-[0_0_8px_rgba(153,69,255,0.4)] hover:shadow-[0_0_12px_rgba(153,69,255,0.6)];
+  }
+  
+  .nav-icon.active {
+    @apply from-primary to-primary/80 
+    shadow-[0_0_12px_rgba(153,69,255,0.6)] scale-110;
+  }
+}
+
+/* Animation Classes */
+@layer utilities {
+  .animate-float {
+    animation: float 5s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3); }
+    50% { box-shadow: 0 0 15px 0 rgba(153, 69, 255, 0.6); }
+    100% { box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3); }
+  }
+  
+  .animate-subtle-rotate {
+    animation: subtle-rotate 10s linear infinite;
+  }
+  
+  @keyframes subtle-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}

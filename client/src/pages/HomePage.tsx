@@ -1,0 +1,260 @@
+import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { GameCard } from '@/components/ui/game-card';
+import { GameButton } from '@/components/ui/game-button';
+import { GameProgress } from '@/components/ui/game-progress';
+import { XpBadge } from '@/components/ui/xp-badge';
+import { AnimatedIcon } from '@/components/ui/animated-icon';
+import { useUser } from '@/lib/stores/useUser';
+import { useSubjects } from '@/lib/stores/useSubjects';
+import { useQuests } from '@/lib/stores/useQuests';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { xpForNextLevel } from '@/lib/stores/useUser';
+
+/**
+ * Home Page Component
+ * The main dashboard showing subjects, stats, and quick actions
+ */
+const HomePage = () => {
+  const { level, xp, coins, gems } = useUser();
+  const { subjects, setActiveSubject } = useSubjects();
+  const { dailyQuests, checkAndRefreshDailyQuests } = useQuests();
+  const navigate = useNavigate();
+  const homeRef = useRef<HTMLDivElement>(null);
+
+  // Check and refresh daily quests when component mounts
+  useEffect(() => {
+    checkAndRefreshDailyQuests();
+  }, [checkAndRefreshDailyQuests]);
+
+  // Calculate incomplete daily quests
+  const incompleteDailyQuests = dailyQuests.filter(quest => !quest.isCompleted).length;
+  
+  // XP required for next level
+  const nextLevelXP = xpForNextLevel(level);
+  const xpProgress = (xp - xpForNextLevel(level - 1)) / (nextLevelXP - xpForNextLevel(level - 1)) * 100;
+
+  return (
+    <div ref={homeRef} className="min-h-screen px-4 pt-6 pb-24">
+      {/* Header with user stats */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center">
+          <XpBadge level={level} size="lg" className="mr-3" />
+          <div>
+            <h1 className="text-xl font-bold text-white">EduQuest</h1>
+            <div className="flex items-center space-x-1 text-xs text-blue-300">
+              <span>Level {level}</span>
+              <span>•</span>
+              <span>{xp} XP</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          {/* Coins display */}
+          <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
+            <AnimatedIcon
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <circle cx="12" cy="12" r="8"></circle>
+                  <path d="M12 2v2"></path>
+                  <path d="M12 20v2"></path>
+                  <path d="M20 12h2"></path>
+                  <path d="M2 12h2"></path>
+                </svg>
+              }
+              color="text-yellow-400"
+              size="sm"
+              animation="pulse"
+            />
+            <span className="ml-1 text-sm font-medium text-yellow-100">{coins}</span>
+          </div>
+          
+          {/* Gems display */}
+          <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
+            <AnimatedIcon
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              }
+              color="text-emerald-400"
+              size="sm"
+              animation="pulse"
+            />
+            <span className="ml-1 text-sm font-medium text-emerald-100">{gems}</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* XP Progress bar */}
+      <div className="mb-8">
+        <div className="flex justify-between text-xs mb-1">
+          <span>XP Progress</span>
+          <span>{xp} / {nextLevelXP}</span>
+        </div>
+        <GameProgress 
+          value={xpProgress} 
+          max={100} 
+          variant="secondary" 
+          size="md" 
+        />
+      </div>
+      
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <GameButton 
+          variant="default" 
+          size="lg"
+          onClick={() => navigate('/study-arena')}
+          leftIcon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          }
+        >
+          Study Now
+        </GameButton>
+        
+        <GameButton 
+          variant="accent" 
+          size="lg"
+          onClick={() => navigate('/quests')}
+          leftIcon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="9" y1="12" x2="15" y2="12"></line>
+              <line x1="9" y1="16" x2="15" y2="16"></line>
+            </svg>
+          }
+        >
+          {incompleteDailyQuests > 0 ? `Quests (${incompleteDailyQuests})` : 'Quests'}
+        </GameButton>
+      </div>
+      
+      {/* Subject Cards */}
+      <h2 className="text-lg font-bold text-white mb-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-secondary">
+          <path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
+          <path d="M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
+          <path d="M3 6v13"></path>
+          <path d="M12 6v13"></path>
+          <path d="M21 6v13"></path>
+        </svg>
+        Your Subjects
+      </h2>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {subjects.map((subject, index) => (
+          <motion.div
+            key={subject.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
+            <GameCard 
+              className="h-full" 
+              animate="float"
+              shimmer
+              onClick={() => {
+                setActiveSubject(subject.id);
+                navigate('/study-arena');
+              }}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center mr-3"
+                    style={{ backgroundColor: subject.color + '33', color: subject.color }}
+                  >
+                    {renderSubjectIcon(subject.icon)}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">{subject.name}</h3>
+                    <p className="text-xs text-gray-300">{subject.description}</p>
+                  </div>
+                </div>
+                <XpBadge level={subject.level} size="sm" />
+              </div>
+              
+              {/* Subject Stats */}
+              <div className="mt-4">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-300">Subject XP</span>
+                  <span className="text-blue-300">{subject.xp} XP</span>
+                </div>
+                <GameProgress 
+                  value={subject.xp} 
+                  max={subject.level * subject.level * subject.level * 5}
+                  size="sm"
+                  variant="secondary" 
+                />
+              </div>
+              
+              {/* Last studied indicator */}
+              {subject.lastStudied && (
+                <div className="mt-3 text-xs text-gray-400">
+                  Last studied: {new Date(subject.lastStudied).toLocaleDateString()}
+                </div>
+              )}
+            </GameCard>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Helper function to render subject icons
+const renderSubjectIcon = (iconName: string) => {
+  switch (iconName) {
+    case 'calculator':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+          <line x1="8" x2="16" y1="6" y2="6"></line>
+          <line x1="8" x2="8" y1="14" y2="14"></line>
+          <line x1="8" x2="8" y1="18" y2="18"></line>
+          <line x1="12" x2="12" y1="14" y2="14"></line>
+          <line x1="12" x2="12" y1="18" y2="18"></line>
+          <line x1="16" x2="16" y1="14" y2="14"></line>
+          <line x1="16" x2="16" y1="18" y2="18"></line>
+        </svg>
+      );
+    case 'flask':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="M9 3h6v2l-1 1v2l4 3h-5"></path>
+          <path d="M8 8H7C4.79 8 3 9.79 3 12v0c0 2.21 1.79 4 4 4h10c2.21 0 4-1.79 4-4v0c0-2.21-1.79-4-4-4h-1"></path>
+          <path d="M7 16l1.5 2"></path>
+          <path d="M16.5 18 18 16"></path>
+          <path d="M12 12v-1"></path>
+        </svg>
+      );
+    case 'book':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+      );
+    case 'clock':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      );
+    default:
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+          <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+        </svg>
+      );
+  }
+};
+
+export default HomePage;
