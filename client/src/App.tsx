@@ -11,6 +11,7 @@ import QuestsPage from "./pages/QuestsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import ProfilePage from "./pages/ProfilePage";
+import SubjectSettings from "./pages/SubjectSettings";
 import NotFound from "./pages/not-found";
 import SoundManager from "./components/audio/SoundManager";
 import { Toaster } from "sonner";

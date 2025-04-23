@@ -63,6 +63,7 @@ interface SubjectsState {
   // Methods
   addSubject: (subject: Omit<Subject, 'id' | 'level' | 'xp' | 'totalStudyTime' | 'lastStudied' | 'notes'>) => void;
   removeSubject: (subjectId: string) => void;
+  editSubject: (subjectId: string, updates: Partial<Pick<Subject, 'name' | 'description' | 'color' | 'icon'>>) => void;
   setActiveSubject: (subjectId: string | null) => void;
   addStudyTime: (subjectId: string, minutes: number) => void;
   addNote: (subjectId: string, note: string) => void;
@@ -120,6 +121,30 @@ export const useSubjects = create<SubjectsState>()(
           subjects: state.subjects.filter(s => s.id !== subjectId),
           activeSubjectId: state.activeSubjectId === subjectId ? null : state.activeSubjectId
         };
+      }),
+      
+      // Edit a subject
+      editSubject: (subjectId, updates) => set((state) => {
+        const subjectIndex = state.subjects.findIndex(s => s.id === subjectId);
+        if (subjectIndex === -1) return {};
+        
+        // Check if we're modifying a default subject
+        const isDefaultSubject = defaultSubjects.some(s => s.id === subjectId);
+        
+        // Make a copy of the subject to update
+        const subject = state.subjects[subjectIndex];
+        const updatedSubject = {
+          ...subject,
+          ...updates
+        };
+        
+        // Update subjects array
+        const updatedSubjects = [...state.subjects];
+        updatedSubjects[subjectIndex] = updatedSubject;
+        
+        toast.success(`Subject "${subject.name}" has been updated`);
+        
+        return { subjects: updatedSubjects };
       }),
       
       // Set active subject
