@@ -313,7 +313,7 @@ const SubjectManager = ({ onClose }: SubjectManagerProps) => {
               <div className="flex justify-end gap-2 pt-2">
                 <GameButton 
                   onClick={handleCancel}
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                 >
                   Cancel
@@ -321,7 +321,7 @@ const SubjectManager = ({ onClose }: SubjectManagerProps) => {
                 
                 <GameButton 
                   onClick={isAddingSubject ? handleSaveNewSubject : handleSaveEditedSubject}
-                  variant="primary"
+                  variant="default"
                   size="sm"
                 >
                   {isAddingSubject ? 'Add Subject' : 'Save Changes'}

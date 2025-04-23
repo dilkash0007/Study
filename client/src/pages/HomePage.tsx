@@ -136,16 +136,32 @@ const HomePage = () => {
       </div>
       
       {/* Subject Cards */}
-      <h2 className="text-lg font-bold text-white mb-4 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-secondary">
-          <path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
-          <path d="M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
-          <path d="M3 6v13"></path>
-          <path d="M12 6v13"></path>
-          <path d="M21 6v13"></path>
-        </svg>
-        Your Subjects
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold text-white flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-secondary">
+            <path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
+            <path d="M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
+            <path d="M3 6v13"></path>
+            <path d="M12 6v13"></path>
+            <path d="M21 6v13"></path>
+          </svg>
+          Your Subjects
+        </h2>
+        
+        <GameButton 
+          variant="ghost" 
+          size="sm"
+          onClick={() => navigate('/subject-settings')}
+          leftIcon={
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          }
+        >
+          Customize
+        </GameButton>
+      </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {subjects.map((subject, index) => (

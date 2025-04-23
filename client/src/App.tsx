@@ -97,6 +97,7 @@ function App() {
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="achievements" element={<AchievementsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="subject-settings" element={<SubjectSettings />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

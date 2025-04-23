@@ -11,7 +11,8 @@ const routeBackgrounds: Record<string, string> = {
   '/quests': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#063d69] via-[#091b3a] to-[#0d0a14]',
   '/leaderboard': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2d4b0f] via-[#152a1c] to-[#0d0a14]',
   '/achievements': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#6d3102] via-[#3a1c09] to-[#0d0a14]',
-  '/profile': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#4f0275] via-[#1e0c30] to-[#0d0a14]'
+  '/profile': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#4f0275] via-[#1e0c30] to-[#0d0a14]',
+  '/subject-settings': 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#275402] via-[#192a15] to-[#0d0a14]'
 };
 
 // Animation variants for page transitions
