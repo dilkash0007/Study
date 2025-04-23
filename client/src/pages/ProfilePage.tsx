@@ -134,96 +134,137 @@ const ProfilePage = () => {
               trigger={showCelebration} 
               originX={50}
               originY={50}
-              count={40}
+              count={50}
             />
           </div>
         )}
         
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-          {/* Avatar section */}
-          <div className="relative">
-            <motion.div 
-              className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center relative overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowAvatarSelector(true)}
-            >
-              {getAvatarById(selectedAvatar)}
+        {/* Background glow effect */}
+        <div className="absolute -inset-[100px] bg-gradient-radial from-primary/30 to-transparent opacity-30 blur-3xl pointer-events-none z-0"></div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-2">
+            {/* Avatar section */}
+            <div className="relative">
+              <motion.div 
+                className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center relative overflow-hidden"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAvatarSelector(true)}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(153, 69, 255, 0.3), rgba(20, 241, 149, 0.1))',
+                  boxShadow: '0 0 20px rgba(153, 69, 255, 0.5), inset 0 0 15px rgba(153, 69, 255, 0.3)'
+                }}
+              >
+                <div className="scale-125 animate-float">
+                  {getAvatarById(selectedAvatar)}
+                </div>
+                
+                <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                
+                {/* Animated ring */}
+                <div className="absolute inset-0 rounded-full border-4 border-primary/50 animate-pulse-glow pointer-events-none"></div>
+                
+                {/* Edit indicator */}
+                <div className="absolute bottom-0 right-0 w-9 h-9 bg-black/70 rounded-full flex items-center justify-center border-2 border-primary shadow-lg shadow-primary/30 animate-pulse-glow">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-white">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                  </svg>
+                </div>
+              </motion.div>
               
-              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
-              
-              {/* Edit indicator */}
-              <div className="absolute bottom-0 right-0 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center border-2 border-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                </svg>
-              </div>
-            </motion.div>
-            
-            <XpBadge level={level} size="lg" className="absolute -bottom-2 -left-2" showAnimation={true} />
-          </div>
-          
-          {/* Character details */}
-          <div className="flex-1 text-center sm:text-left">
-            <div 
-              className="text-xl font-bold text-white mb-1 cursor-pointer flex items-center justify-center sm:justify-start"
-              onClick={() => setShowTitleSelector(true)}
-            >
-              <span>{selectedTitle}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 ml-1 text-gray-400">
-                <path d="m7 11 5 5 5-5"></path>
-              </svg>
+              <XpBadge level={level} size="lg" className="absolute -bottom-2 -left-2" showAnimation={true} />
             </div>
             
-            <div className="text-blue-300 mb-3">Level {level} Explorer</div>
-            
-            {/* XP Progress */}
-            <div className="max-w-xs mx-auto sm:mx-0">
-              <div className="flex justify-between text-xs mb-1">
-                <span>XP Progress</span>
-                <span>{currentLevelProgress} / {requiredLevelProgress}</span>
-              </div>
-              <GameProgress 
-                value={xpProgressPercentage} 
-                max={100} 
-                variant="secondary" 
-                size="sm" 
-              />
-            </div>
-            
-            {/* Currency display */}
-            <div className="flex items-center justify-center sm:justify-start gap-4 mt-4">
-              <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
-                <AnimatedIcon
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                      <circle cx="12" cy="12" r="8"></circle>
-                      <path d="M12 2v2"></path>
-                      <path d="M12 20v2"></path>
-                      <path d="M20 12h2"></path>
-                      <path d="M2 12h2"></path>
-                    </svg>
-                  }
-                  color="text-yellow-400"
-                  size="sm"
-                  animation="pulse"
-                />
-                <span className="ml-1 text-sm font-medium text-yellow-100">{coins} Coins</span>
-              </div>
-              
-              <div className="flex items-center bg-black/30 rounded-full px-3 py-1">
-                <AnimatedIcon
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  }
-                  color="text-emerald-400"
-                  size="sm"
-                  animation="pulse"
-                />
-                <span className="ml-1 text-sm font-medium text-emerald-100">{gems} Gems</span>
-              </div>
+            {/* Character details */}
+            <div className="flex-1 text-center sm:text-left">
+              <motion.div 
+                className="flex flex-col items-center sm:items-start"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div 
+                  className="text-2xl font-bold mb-1 cursor-pointer flex items-center justify-center sm:justify-start"
+                  onClick={() => setShowTitleSelector(true)}
+                  style={{
+                    background: 'linear-gradient(90deg, #f5f7fa, #c3cfe2, #f5f7fa)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  <span>{selectedTitle}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 ml-1 text-gray-400">
+                    <path d="m7 11 5 5 5-5"></path>
+                  </svg>
+                </div>
+                
+                <div className="text-blue-300 mb-4 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-1 text-blue-400">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                  </svg>
+                  <span className="font-medium">Level {level} Explorer</span>
+                </div>
+                
+                {/* XP Progress */}
+                <div className="w-full max-w-xs mx-auto sm:mx-0">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-medium">XP Progress</span>
+                    <span className="text-blue-200 font-medium">{currentLevelProgress} / {requiredLevelProgress}</span>
+                  </div>
+                  <GameProgress 
+                    value={xpProgressPercentage} 
+                    max={100} 
+                    variant="secondary" 
+                    size="md" 
+                  />
+                  
+                  <div className="text-xs text-gray-400 mt-1 text-right">
+                    {Math.floor(requiredLevelProgress - currentLevelProgress)} XP until Level {level + 1}
+                  </div>
+                </div>
+                
+                {/* Currency display */}
+                <div className="flex items-center justify-center sm:justify-start gap-4 mt-5">
+                  <motion.div 
+                    className="flex items-center bg-gradient-to-r from-yellow-900/40 to-yellow-600/20 rounded-full px-4 py-2 border border-yellow-500/30 shadow-lg shadow-yellow-500/10"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <AnimatedIcon
+                      icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                          <circle cx="12" cy="12" r="8"></circle>
+                          <path d="M12 2v2"></path>
+                          <path d="M12 20v2"></path>
+                          <path d="M20 12h2"></path>
+                          <path d="M2 12h2"></path>
+                        </svg>
+                      }
+                      color="text-yellow-400"
+                      size="sm"
+                      animation="pulse"
+                    />
+                    <span className="ml-2 font-bold text-yellow-100">{coins} Coins</span>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="flex items-center bg-gradient-to-r from-emerald-900/40 to-emerald-600/20 rounded-full px-4 py-2 border border-emerald-500/30 shadow-lg shadow-emerald-500/10"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <AnimatedIcon
+                      icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                      }
+                      color="text-emerald-400"
+                      size="sm"
+                      animation="pulse"
+                    />
+                    <span className="ml-2 font-bold text-emerald-100">{gems} Gems</span>
+                  </motion.div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>

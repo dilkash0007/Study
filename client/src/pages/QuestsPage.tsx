@@ -10,6 +10,39 @@ import { QuestType, QuestDifficulty } from '@/types';
 import { cn } from '@/lib/utils';
 import ParticleEffect from '@/components/effects/ParticleEffect';
 
+// Helper functions to handle quest difficulty
+// Get difficulty badge color
+const getDifficultyColor = (difficulty: QuestDifficulty) => {
+  switch (difficulty) {
+    case QuestDifficulty.EASY:
+      return 'bg-green-500/80';
+    case QuestDifficulty.MEDIUM:
+      return 'bg-blue-500/80';
+    case QuestDifficulty.HARD:
+      return 'bg-purple-500/80';
+    case QuestDifficulty.VERY_HARD:
+      return 'bg-red-500/80';
+    default:
+      return 'bg-gray-500/80';
+  }
+};
+
+// Get difficulty text
+const getDifficultyText = (difficulty: QuestDifficulty) => {
+  switch (difficulty) {
+    case QuestDifficulty.EASY:
+      return 'Easy';
+    case QuestDifficulty.MEDIUM:
+      return 'Medium';
+    case QuestDifficulty.HARD:
+      return 'Hard';
+    case QuestDifficulty.VERY_HARD:
+      return 'Very Hard';
+    default:
+      return 'Unknown';
+  }
+};
+
 /**
  * Quests Page Component
  * Displays daily and epic quests for the player to complete
@@ -47,38 +80,6 @@ const QuestsPage = () => {
   const handleUpdateProgress = (questId: string, progress: number) => {
     playHit();
     updateQuestProgress(questId, progress);
-  };
-  
-  // Get difficulty badge color
-  const getDifficultyColor = (difficulty: QuestDifficulty) => {
-    switch (difficulty) {
-      case QuestDifficulty.EASY:
-        return 'bg-green-500/80';
-      case QuestDifficulty.MEDIUM:
-        return 'bg-blue-500/80';
-      case QuestDifficulty.HARD:
-        return 'bg-purple-500/80';
-      case QuestDifficulty.VERY_HARD:
-        return 'bg-red-500/80';
-      default:
-        return 'bg-gray-500/80';
-    }
-  };
-  
-  // Get difficulty text
-  const getDifficultyText = (difficulty: QuestDifficulty) => {
-    switch (difficulty) {
-      case QuestDifficulty.EASY:
-        return 'Easy';
-      case QuestDifficulty.MEDIUM:
-        return 'Medium';
-      case QuestDifficulty.HARD:
-        return 'Hard';
-      case QuestDifficulty.VERY_HARD:
-        return 'Very Hard';
-      default:
-        return 'Unknown';
-    }
   };
 
   return (
