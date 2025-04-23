@@ -14,6 +14,7 @@ import { getAvatarById } from '@/assets/avatars';
 import { cn } from '@/lib/utils';
 import { xpForNextLevel } from '@/lib/stores/useUser';
 import { toast } from 'sonner';
+import { AchievementCategory } from '@/types';
 import ParticleEffect from '@/components/effects/ParticleEffect';
 
 // Available avatar IDs

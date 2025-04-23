@@ -9,17 +9,10 @@ import { useSubjects } from '@/lib/stores/useSubjects';
 import { useAudio } from '@/lib/stores/useAudio';
 import { useAchievements } from '@/lib/stores/useAchievements';
 import { useQuests } from '@/lib/stores/useQuests';
+import { useTimer, TimerState, TimerMode, formatTime } from '@/lib/stores/useTimer';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ParticleEffect from '@/components/effects/ParticleEffect';
-
-// Study session states
-enum SessionState {
-  READY = 'ready',
-  RUNNING = 'running',
-  PAUSED = 'paused',
-  COMPLETED = 'completed'
-}
 
 // Timer modes and durations (in minutes)
 const TIMER_MODES = {
@@ -29,6 +22,9 @@ const TIMER_MODES = {
   BREAK_SHORT: { label: 'Break (5m)', duration: 5 },
   BREAK_MEDIUM: { label: 'Break (10m)', duration: 10 }
 };
+
+// For compatibility with existing code
+const SessionState = TimerState;
 
 /**
  * Study Arena Component
@@ -41,10 +37,24 @@ const StudyArena = () => {
   const { incrementProgress } = useAchievements();
   const { updateQuestProgress } = useQuests();
   
+  // Timer state from global store
+  const {
+    state: timerState,
+    mode: timerMode,
+    timeRemaining,
+    currentSession,
+    focusDuration,
+    setFocusDuration,
+    startTimer: startGlobalTimer,
+    pauseTimer: pauseGlobalTimer,
+    resumeTimer: resumeGlobalTimer,
+    resetTimer: resetGlobalTimer,
+    completeSession,
+    syncTimerState
+  } = useTimer();
+  
   // Local state
   const [selectedMode, setSelectedMode] = useState(TIMER_MODES.FOCUS_SHORT);
-  const [timeLeft, setTimeLeft] = useState(selectedMode.duration * 60);
-  const [sessionState, setSessionState] = useState<SessionState>(SessionState.READY);
   const [showCelebration, setShowCelebration] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
   const intervalRef = useRef<number | null>(null);
@@ -52,47 +62,56 @@ const StudyArena = () => {
   // Get active subject
   const activeSubject = subjects.find(s => s.id === activeSubjectId) || subjects[0];
   
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Map timer states to session states
+  const sessionState = 
+    timerState === TimerState.READY ? SessionState.READY :
+    timerState === TimerState.RUNNING ? SessionState.RUNNING :
+    timerState === TimerState.PAUSED ? SessionState.PAUSED :
+    SessionState.COMPLETED;
   
   // Calculate progress percentage
-  const progressPercentage = ((selectedMode.duration * 60 - timeLeft) / (selectedMode.duration * 60)) * 100;
+  const totalSeconds = timerMode === TimerMode.FOCUS ? focusDuration : 
+                       timerMode === TimerMode.BREAK ? 300 : 900;
+  const progressPercentage = ((totalSeconds - timeRemaining) / totalSeconds) * 100;
   
-  // Handle timer tick
+  // Sync timer when component mounts or becomes visible
   useEffect(() => {
-    if (sessionState === SessionState.RUNNING) {
-      intervalRef.current = window.setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            // Timer complete
-            clearInterval(intervalRef.current!);
-            onTimerComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
+    // Initial sync when component mounts
+    syncTimerState();
     
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    // Set up regular sync for background updates
+    const syncInterval = setInterval(() => {
+      syncTimerState();
+    }, 1000);
+    
+    // Set up visibility change listener for background processing
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncTimerState();
       }
     };
-  }, [sessionState]);
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(syncInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [syncTimerState]);
   
-  // Reset timer when mode changes
+  // Update focusDuration when selectedMode changes
   useEffect(() => {
     if (sessionState === SessionState.READY) {
-      setTimeLeft(selectedMode.duration * 60);
+      setFocusDuration(selectedMode.duration * 60);
     }
-  }, [selectedMode, sessionState]);
+  }, [selectedMode, sessionState, setFocusDuration]);
+  
+  // Handle timer completion
+  useEffect(() => {
+    if (timerState === TimerState.COMPLETED && !showCelebration) {
+      onTimerComplete();
+    }
+  }, [timerState]);
   
   // Start the timer
   const startTimer = () => {
@@ -101,7 +120,7 @@ const StudyArena = () => {
       return;
     }
     
-    setSessionState(SessionState.RUNNING);
+    startGlobalTimer();
     toast(`${activeSubject.name} study session started!`, {
       description: `Focus for ${selectedMode.duration} minutes`,
       icon: '🔥'
@@ -110,43 +129,42 @@ const StudyArena = () => {
   
   // Pause the timer
   const pauseTimer = () => {
-    setSessionState(SessionState.PAUSED);
+    pauseGlobalTimer();
   };
   
   // Resume the timer
   const resumeTimer = () => {
-    setSessionState(SessionState.RUNNING);
+    resumeGlobalTimer();
   };
   
   // Reset the timer
   const resetTimer = () => {
-    setTimeLeft(selectedMode.duration * 60);
-    setSessionState(SessionState.READY);
+    resetGlobalTimer();
   };
   
   // Complete the timer and award XP
   const onTimerComplete = () => {
-    setSessionState(SessionState.COMPLETED);
     playSuccess();
     setShowCelebration(true);
     
-    // Add study time to active subject
-    if (activeSubject) {
+    // Add study time to active subject - only if this was a focus session
+    if (activeSubject && timerMode === TimerMode.FOCUS) {
       addStudyTime(activeSubject.id, selectedMode.duration);
+      
+      // Update quest progress for study sessions
+      updateQuestProgress('daily-1', 1); // Update daily study session quest
+      
+      // Update achievement progress
+      incrementProgress('study_sessions', 1);
+      
+      // Increment completed sessions counter
+      setCompletedSessions(prev => prev + 1);
     }
     
-    // Update quest progress for study sessions
-    updateQuestProgress('daily-1', 1); // Update daily study session quest
-    
-    // Update achievement progress
-    incrementProgress('study_sessions', 1);
-    
-    // Increment completed sessions counter
-    setCompletedSessions(prev => prev + 1);
-    
-    // Hide celebration after a delay
+    // Move to next session after a delay
     setTimeout(() => {
       setShowCelebration(false);
+      completeSession(); // This will automatically move to break or next focus
     }, 3000);
   };
   
