@@ -15,10 +15,10 @@ import { xpForNextLevel } from '@/lib/stores/useUser';
 import { toast } from 'sonner';
 
 /**
- * Home Page Component
+ * Dashboard Component
  * The main dashboard showing subjects, stats, and quick actions
  */
-const HomePage = () => {
+const Dashboard = () => {
   const { level, xp, coins, gems } = useUser();
   const { subjects, setActiveSubject } = useSubjects();
   const { dailyQuests, checkAndRefreshDailyQuests } = useQuests();
@@ -137,8 +137,11 @@ const HomePage = () => {
         </GameButton>
       </div>
       
+      {/* Active Study Session */}
+      <ActiveStudySession />
+      
       {/* Subject Cards */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 mt-8">
         <h2 className="text-lg font-bold text-white flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-secondary">
             <path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"></path>
@@ -248,9 +251,6 @@ const HomePage = () => {
         ))}
       </div>
       
-      {/* Active Study Session */}
-      <ActiveStudySession />
-      
       {/* Quick Access Sections */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
         {/* Daily Quests Section */}
@@ -347,7 +347,7 @@ const HomePage = () => {
                 value={70}
                 max={100}
                 size="sm"
-                variant="primary"
+                variant="secondary"
               />
             </div>
           </GameCard>
@@ -355,77 +355,77 @@ const HomePage = () => {
       </div>
     </div>
   );
+};
+
+// Active Study Session Component
+const ActiveStudySession = () => {
+  const { isActive, timeLeft, sessionType, pauseTimer, resumeTimer } = useTimer();
   
-  // Active Study Session Component
-  const ActiveStudySession = () => {
-    const { isActive, timeLeft, sessionType, pauseTimer, resumeTimer } = useTimer();
-    
-    if (!isActive) return null;
-    
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    
-    return (
-      <div className="mt-6">
-        <h2 className="text-lg font-bold text-white flex items-center mb-3">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-green-500">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          Current Study Session
-        </h2>
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <GameCard className="border border-green-700/50" shimmer>
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-white font-semibold">{sessionType === 'focus' ? 'Focus Time' : 'Break Time'}</div>
-                <div className="text-xs text-gray-400 mt-1">Session in progress</div>
-              </div>
-              
-              <div className="flex items-center">
-                <span className="mr-3 text-2xl font-bold text-white">{formattedTime}</span>
-                
-                {/* Pause/Resume Button */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => isActive && timeLeft > 0 ? pauseTimer() : resumeTimer()}
-                  className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center"
-                >
-                  {timeLeft > 0 && isActive ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="6" y="4" width="4" height="16"></rect>
-                      <rect x="14" y="4" width="4" height="16"></rect>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  )}
-                </motion.button>
-              </div>
+  if (!isActive) return null;
+  
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  
+  return (
+    <div className="mt-6">
+      <h2 className="text-lg font-bold text-white flex items-center mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2 text-green-500">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Current Study Session
+      </h2>
+      
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <GameCard className="border border-green-700/50" shimmer>
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-white font-semibold">{sessionType === 'focus' ? 'Focus Time' : 'Break Time'}</div>
+              <div className="text-xs text-gray-400 mt-1">Session in progress</div>
             </div>
             
-            <div className="mt-3">
-              <GameButton 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => navigate('/study-arena')}
+            <div className="flex items-center">
+              <span className="mr-3 text-2xl font-bold text-white">{formattedTime}</span>
+              
+              {/* Pause/Resume Button */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => isActive && timeLeft > 0 ? pauseTimer() : resumeTimer()}
+                className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center"
               >
-                Go to Study Arena
-              </GameButton>
+                {timeLeft > 0 && isActive ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                )}
+              </motion.button>
             </div>
-          </GameCard>
-        </motion.div>
-      </div>
-    );
-  };
+          </div>
+          
+          <div className="mt-3">
+            <GameButton 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => navigate('/study-arena')}
+            >
+              Go to Study Arena
+            </GameButton>
+          </div>
+        </GameCard>
+      </motion.div>
+    </div>
+  );
 };
 
 // Helper function to render subject icons
@@ -477,4 +477,4 @@ const renderSubjectIcon = (iconName: string) => {
   }
 };
 
-export default HomePage;
+export default Dashboard;

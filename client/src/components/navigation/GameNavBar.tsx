@@ -6,7 +6,7 @@ import { useAudio } from '@/lib/stores/useAudio';
 
 // Navigation items configuration
 const navItems = [
-  { path: '/', icon: 'home', label: 'Home' },
+  { path: '/', icon: 'home', label: 'Dashboard' },
   { path: '/study-arena', icon: 'arena', label: 'Arena' },
   { path: '/quests', icon: 'quests', label: 'Quests' },
   { path: '/leaderboard', icon: 'leaderboard', label: 'Ranks' },

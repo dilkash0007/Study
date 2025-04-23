@@ -5,7 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { useAudio } from "./lib/stores/useAudio";
 import { useTimer } from "./lib/stores/useTimer";
 import GameLayout from "./components/layout/GameLayout";
-import HomePage from "./pages/HomePage";
+import Dashboard from "./pages/Dashboard";
 import StudyArena from "./pages/StudyArena";
 import QuestsPage from "./pages/QuestsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
@@ -91,7 +91,7 @@ function App() {
         <Toaster position="top-center" richColors closeButton />
         <Routes>
           <Route path="/" element={<GameLayout />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<Dashboard />} />
             <Route path="study-arena" element={<StudyArena />} />
             <Route path="quests" element={<QuestsPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
