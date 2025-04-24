@@ -1,6 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import socialRoutes from "./routes/social";
+import { WebSocket, WebSocketServer } from "ws";
 
 // Helper function to handle async routes
 const asyncHandler = (fn: Function) => (req: Request, res: Response) => {
@@ -11,331 +13,598 @@ const asyncHandler = (fn: Function) => (req: Request, res: Response) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register social routes
+  app.use("/api/social", socialRoutes);
+
   // AUTH ROUTES
   // Register a new user
-  app.post("/api/auth/register", asyncHandler(async (req: Request, res: Response) => {
-    const { username, password, email } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required" });
-    }
-    
-    try {
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(409).json({ message: "Username already exists" });
+  app.post(
+    "/api/auth/register",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { username, password, email } = req.body;
+
+      if (!username || !password) {
+        return res
+          .status(400)
+          .json({ message: "Username and password are required" });
       }
-      
-      const user = await storage.createUser({ username, password, email });
-      
-      // Initialize user stats and default data
-      await storage.initializeUserData(user.id);
-      
-      // Return user data (without password)
-      const { password: _, ...userData } = user;
-      res.status(201).json(userData);
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Failed to register user" });
-    }
-  }));
-  
+
+      try {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser) {
+          return res.status(409).json({ message: "Username already exists" });
+        }
+
+        const user = await storage.createUser({ username, password, email });
+
+        // Initialize user stats and default data
+        await storage.initializeUserData(user.id);
+
+        // Return user data (without password)
+        const { password: _, ...userData } = user;
+        res.status(201).json(userData);
+      } catch (error) {
+        console.error("Registration error:", error);
+        res.status(500).json({ message: "Failed to register user" });
+      }
+    })
+  );
+
   // Login user
-  app.post("/api/auth/login", asyncHandler(async (req: Request, res: Response) => {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required" });
-    }
-    
-    try {
-      const user = await storage.getUserByUsername(username);
-      if (!user || user.password !== password) {
-        return res.status(401).json({ message: "Invalid username or password" });
+  app.post(
+    "/api/auth/login",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res
+          .status(400)
+          .json({ message: "Username and password are required" });
       }
-      
-      // Update login streak
-      await storage.updateLoginStreak(user.id);
-      
-      // Return user data (without password)
-      const { password: _, ...userData } = user;
-      res.status(200).json(userData);
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ message: "Failed to login" });
-    }
-  }));
-  
+
+      try {
+        const user = await storage.getUserByUsername(username);
+        if (!user || user.password !== password) {
+          return res
+            .status(401)
+            .json({ message: "Invalid username or password" });
+        }
+
+        // Update login streak
+        await storage.updateLoginStreak(user.id);
+
+        // Return user data (without password)
+        const { password: _, ...userData } = user;
+        res.status(200).json(userData);
+      } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Failed to login" });
+      }
+    })
+  );
+
   // USER STATS ROUTES
   // Get user stats
-  app.get("/api/users/:userId/stats", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    
-    try {
-      const userStats = await storage.getUserStats(parseInt(userId));
-      if (!userStats) {
-        return res.status(404).json({ message: "User stats not found" });
+  app.get(
+    "/api/users/:userId/stats",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+
+      try {
+        const userStats = await storage.getUserStats(parseInt(userId));
+        if (!userStats) {
+          return res.status(404).json({ message: "User stats not found" });
+        }
+
+        res.status(200).json(userStats);
+      } catch (error) {
+        console.error("Get user stats error:", error);
+        res.status(500).json({ message: "Failed to get user stats" });
       }
-      
-      res.status(200).json(userStats);
-    } catch (error) {
-      console.error("Get user stats error:", error);
-      res.status(500).json({ message: "Failed to get user stats" });
-    }
-  }));
-  
+    })
+  );
+
   // Update user XP
-  app.post("/api/users/:userId/xp", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { amount } = req.body;
-    
-    if (isNaN(amount)) {
-      return res.status(400).json({ message: "Amount must be a number" });
-    }
-    
-    try {
-      const updatedStats = await storage.addUserXP(parseInt(userId), amount);
-      res.status(200).json(updatedStats);
-    } catch (error) {
-      console.error("Update XP error:", error);
-      res.status(500).json({ message: "Failed to update XP" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/xp",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { amount } = req.body;
+
+      if (isNaN(amount)) {
+        return res.status(400).json({ message: "Amount must be a number" });
+      }
+
+      try {
+        const updatedStats = await storage.addUserXP(parseInt(userId), amount);
+        res.status(200).json(updatedStats);
+      } catch (error) {
+        console.error("Update XP error:", error);
+        res.status(500).json({ message: "Failed to update XP" });
+      }
+    })
+  );
+
   // Update user currency (coins/gems)
-  app.post("/api/users/:userId/currency", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { coins, gems } = req.body;
-    
-    try {
-      const updatedStats = await storage.updateUserCurrency(parseInt(userId), coins || 0, gems || 0);
-      res.status(200).json(updatedStats);
-    } catch (error) {
-      console.error("Update currency error:", error);
-      res.status(500).json({ message: "Failed to update currency" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/currency",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { coins, gems } = req.body;
+
+      try {
+        const updatedStats = await storage.updateUserCurrency(
+          parseInt(userId),
+          coins || 0,
+          gems || 0
+        );
+        res.status(200).json(updatedStats);
+      } catch (error) {
+        console.error("Update currency error:", error);
+        res.status(500).json({ message: "Failed to update currency" });
+      }
+    })
+  );
+
   // Update user avatar
-  app.post("/api/users/:userId/avatar", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { avatarId } = req.body;
-    
-    if (!avatarId) {
-      return res.status(400).json({ message: "Avatar ID is required" });
-    }
-    
-    try {
-      const updatedStats = await storage.updateUserAvatar(parseInt(userId), avatarId);
-      res.status(200).json(updatedStats);
-    } catch (error) {
-      console.error("Update avatar error:", error);
-      res.status(500).json({ message: "Failed to update avatar" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/avatar",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { avatarId } = req.body;
+
+      if (!avatarId) {
+        return res.status(400).json({ message: "Avatar ID is required" });
+      }
+
+      try {
+        const updatedStats = await storage.updateUserAvatar(
+          parseInt(userId),
+          avatarId
+        );
+        res.status(200).json(updatedStats);
+      } catch (error) {
+        console.error("Update avatar error:", error);
+        res.status(500).json({ message: "Failed to update avatar" });
+      }
+    })
+  );
+
   // Update user title
-  app.post("/api/users/:userId/title", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { titleId } = req.body;
-    
-    if (!titleId) {
-      return res.status(400).json({ message: "Title ID is required" });
-    }
-    
-    try {
-      const updatedStats = await storage.updateUserTitle(parseInt(userId), titleId);
-      res.status(200).json(updatedStats);
-    } catch (error) {
-      console.error("Update title error:", error);
-      res.status(500).json({ message: "Failed to update title" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/title",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { titleId } = req.body;
+
+      if (!titleId) {
+        return res.status(400).json({ message: "Title ID is required" });
+      }
+
+      try {
+        const updatedStats = await storage.updateUserTitle(
+          parseInt(userId),
+          titleId
+        );
+        res.status(200).json(updatedStats);
+      } catch (error) {
+        console.error("Update title error:", error);
+        res.status(500).json({ message: "Failed to update title" });
+      }
+    })
+  );
+
   // SUBJECT ROUTES
   // Get user subjects
-  app.get("/api/users/:userId/subjects", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    
-    try {
-      const subjects = await storage.getUserSubjects(parseInt(userId));
-      res.status(200).json(subjects);
-    } catch (error) {
-      console.error("Get subjects error:", error);
-      res.status(500).json({ message: "Failed to get subjects" });
-    }
-  }));
-  
+  app.get(
+    "/api/users/:userId/subjects",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+
+      try {
+        const subjects = await storage.getUserSubjects(parseInt(userId));
+        res.status(200).json(subjects);
+      } catch (error) {
+        console.error("Get subjects error:", error);
+        res.status(500).json({ message: "Failed to get subjects" });
+      }
+    })
+  );
+
   // Create a new subject
-  app.post("/api/users/:userId/subjects", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { name, description, color, icon } = req.body;
-    
-    if (!name || !description || !color || !icon) {
-      return res.status(400).json({ message: "Name, description, color, and icon are required" });
-    }
-    
-    try {
-      const subject = await storage.createSubject(parseInt(userId), { name, description, color, icon });
-      res.status(201).json(subject);
-    } catch (error) {
-      console.error("Create subject error:", error);
-      res.status(500).json({ message: "Failed to create subject" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/subjects",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { name, description, color, icon } = req.body;
+
+      if (!name || !description || !color || !icon) {
+        return res
+          .status(400)
+          .json({ message: "Name, description, color, and icon are required" });
+      }
+
+      try {
+        const subject = await storage.createSubject(parseInt(userId), {
+          name,
+          description,
+          color,
+          icon,
+        });
+        res.status(201).json(subject);
+      } catch (error) {
+        console.error("Create subject error:", error);
+        res.status(500).json({ message: "Failed to create subject" });
+      }
+    })
+  );
+
   // Add study time to a subject
-  app.post("/api/subjects/:subjectId/study", asyncHandler(async (req: Request, res: Response) => {
-    const { subjectId } = req.params;
-    const { userId, duration } = req.body;
-    
-    if (!userId || !duration) {
-      return res.status(400).json({ message: "User ID and duration are required" });
-    }
-    
-    try {
-      const result = await storage.addSubjectStudyTime(parseInt(userId), parseInt(subjectId), duration);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Add study time error:", error);
-      res.status(500).json({ message: "Failed to add study time" });
-    }
-  }));
-  
+  app.post(
+    "/api/subjects/:subjectId/study",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { subjectId } = req.params;
+      const { userId, duration } = req.body;
+
+      if (!userId || !duration) {
+        return res
+          .status(400)
+          .json({ message: "User ID and duration are required" });
+      }
+
+      try {
+        const result = await storage.addSubjectStudyTime(
+          parseInt(userId),
+          parseInt(subjectId),
+          duration
+        );
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Add study time error:", error);
+        res.status(500).json({ message: "Failed to add study time" });
+      }
+    })
+  );
+
   // Add a note to a subject
-  app.post("/api/subjects/:subjectId/notes", asyncHandler(async (req: Request, res: Response) => {
-    const { subjectId } = req.params;
-    const { text } = req.body;
-    
-    if (!text) {
-      return res.status(400).json({ message: "Note text is required" });
-    }
-    
-    try {
-      const note = await storage.addSubjectNote(parseInt(subjectId), text);
-      res.status(201).json(note);
-    } catch (error) {
-      console.error("Add note error:", error);
-      res.status(500).json({ message: "Failed to add note" });
-    }
-  }));
-  
+  app.post(
+    "/api/subjects/:subjectId/notes",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { subjectId } = req.params;
+      const { text } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ message: "Note text is required" });
+      }
+
+      try {
+        const note = await storage.addSubjectNote(parseInt(subjectId), text);
+        res.status(201).json(note);
+      } catch (error) {
+        console.error("Add note error:", error);
+        res.status(500).json({ message: "Failed to add note" });
+      }
+    })
+  );
+
   // QUEST ROUTES
   // Get user quests
-  app.get("/api/users/:userId/quests", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { type } = req.query; // optional filter by type (daily/epic)
-    
-    try {
-      const quests = await storage.getUserQuests(parseInt(userId), type as string);
-      res.status(200).json(quests);
-    } catch (error) {
-      console.error("Get quests error:", error);
-      res.status(500).json({ message: "Failed to get quests" });
-    }
-  }));
-  
+  app.get(
+    "/api/users/:userId/quests",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { type } = req.query; // optional filter by type (daily/epic)
+
+      try {
+        const quests = await storage.getUserQuests(
+          parseInt(userId),
+          type as string
+        );
+        res.status(200).json(quests);
+      } catch (error) {
+        console.error("Get quests error:", error);
+        res.status(500).json({ message: "Failed to get quests" });
+      }
+    })
+  );
+
   // Update quest progress
-  app.post("/api/quests/:questId/progress", asyncHandler(async (req: Request, res: Response) => {
-    const { questId } = req.params;
-    const { userId, progress } = req.body;
-    
-    if (isNaN(progress)) {
-      return res.status(400).json({ message: "Progress must be a number" });
-    }
-    
-    try {
-      const quest = await storage.updateQuestProgress(parseInt(userId), parseInt(questId), progress);
-      res.status(200).json(quest);
-    } catch (error) {
-      console.error("Update quest progress error:", error);
-      res.status(500).json({ message: "Failed to update quest progress" });
-    }
-  }));
-  
+  app.post(
+    "/api/quests/:questId/progress",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { questId } = req.params;
+      const { userId, progress } = req.body;
+
+      if (isNaN(progress)) {
+        return res.status(400).json({ message: "Progress must be a number" });
+      }
+
+      try {
+        const quest = await storage.updateQuestProgress(
+          parseInt(userId),
+          parseInt(questId),
+          progress
+        );
+        res.status(200).json(quest);
+      } catch (error) {
+        console.error("Update quest progress error:", error);
+        res.status(500).json({ message: "Failed to update quest progress" });
+      }
+    })
+  );
+
   // Complete a quest
-  app.post("/api/quests/:questId/complete", asyncHandler(async (req: Request, res: Response) => {
-    const { questId } = req.params;
-    const { userId } = req.body;
-    
-    try {
-      const result = await storage.completeQuest(parseInt(userId), parseInt(questId));
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Complete quest error:", error);
-      res.status(500).json({ message: "Failed to complete quest" });
-    }
-  }));
-  
+  app.post(
+    "/api/quests/:questId/complete",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { questId } = req.params;
+      const { userId } = req.body;
+
+      try {
+        const result = await storage.completeQuest(
+          parseInt(userId),
+          parseInt(questId)
+        );
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Complete quest error:", error);
+        res.status(500).json({ message: "Failed to complete quest" });
+      }
+    })
+  );
+
   // Refresh daily quests
-  app.post("/api/users/:userId/quests/refresh", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    
-    try {
-      const refreshedQuests = await storage.refreshDailyQuests(parseInt(userId));
-      res.status(200).json(refreshedQuests);
-    } catch (error) {
-      console.error("Refresh quests error:", error);
-      res.status(500).json({ message: "Failed to refresh quests" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/quests/refresh",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+
+      try {
+        const refreshedQuests = await storage.refreshDailyQuests(
+          parseInt(userId)
+        );
+        res.status(200).json(refreshedQuests);
+      } catch (error) {
+        console.error("Refresh quests error:", error);
+        res.status(500).json({ message: "Failed to refresh quests" });
+      }
+    })
+  );
+
   // ACHIEVEMENT ROUTES
   // Get user achievements
-  app.get("/api/users/:userId/achievements", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    
-    try {
-      const achievements = await storage.getUserAchievements(parseInt(userId));
-      res.status(200).json(achievements);
-    } catch (error) {
-      console.error("Get achievements error:", error);
-      res.status(500).json({ message: "Failed to get achievements" });
-    }
-  }));
-  
+  app.get(
+    "/api/users/:userId/achievements",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+
+      try {
+        const achievements = await storage.getUserAchievements(
+          parseInt(userId)
+        );
+        res.status(200).json(achievements);
+      } catch (error) {
+        console.error("Get achievements error:", error);
+        res.status(500).json({ message: "Failed to get achievements" });
+      }
+    })
+  );
+
   // Check for new achievements (after various actions)
-  app.post("/api/users/:userId/achievements/check", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { type, value } = req.body;
-    
-    try {
-      const newlyUnlocked = await storage.checkAchievements(parseInt(userId), type, value);
-      res.status(200).json({ newlyUnlocked });
-    } catch (error) {
-      console.error("Check achievements error:", error);
-      res.status(500).json({ message: "Failed to check achievements" });
-    }
-  }));
-  
+  app.post(
+    "/api/users/:userId/achievements/check",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { type, value } = req.body;
+
+      try {
+        const newlyUnlocked = await storage.checkAchievements(
+          parseInt(userId),
+          type,
+          value
+        );
+        res.status(200).json({ newlyUnlocked });
+      } catch (error) {
+        console.error("Check achievements error:", error);
+        res.status(500).json({ message: "Failed to check achievements" });
+      }
+    })
+  );
+
   // LEADERBOARD ROUTES
   // Get leaderboard
-  app.get("/api/leaderboard", asyncHandler(async (req: Request, res: Response) => {
-    const { timeframe = 'weekly', limit = 10 } = req.query;
-    
-    try {
-      const leaderboard = await storage.getLeaderboard(timeframe as string, parseInt(limit as string));
-      res.status(200).json(leaderboard);
-    } catch (error) {
-      console.error("Get leaderboard error:", error);
-      res.status(500).json({ message: "Failed to get leaderboard" });
-    }
-  }));
-  
+  app.get(
+    "/api/leaderboard",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { timeframe = "weekly", limit = 10 } = req.query;
+
+      try {
+        const leaderboard = await storage.getLeaderboard(
+          timeframe as string,
+          parseInt(limit as string)
+        );
+        res.status(200).json(leaderboard);
+      } catch (error) {
+        console.error("Get leaderboard error:", error);
+        res.status(500).json({ message: "Failed to get leaderboard" });
+      }
+    })
+  );
+
   // Get user rank
-  app.get("/api/users/:userId/rank", asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const { timeframe = 'weekly' } = req.query;
-    
-    try {
-      const rank = await storage.getUserRank(parseInt(userId), timeframe as string);
-      res.status(200).json(rank);
-    } catch (error) {
-      console.error("Get user rank error:", error);
-      res.status(500).json({ message: "Failed to get user rank" });
-    }
-  }));
-  
+  app.get(
+    "/api/users/:userId/rank",
+    asyncHandler(async (req: Request, res: Response) => {
+      const { userId } = req.params;
+      const { timeframe = "weekly" } = req.query;
+
+      try {
+        const rank = await storage.getUserRank(
+          parseInt(userId),
+          timeframe as string
+        );
+        res.status(200).json(rank);
+      } catch (error) {
+        console.error("Get user rank error:", error);
+        res.status(500).json({ message: "Failed to get user rank" });
+      }
+    })
+  );
+
   const httpServer = createServer(app);
+
+  // WebSocket server setup for real-time features
+  setupWebSocketServer(httpServer);
+
   return httpServer;
+}
+
+// Setup WebSocket server for real-time features (chat, study sessions, etc.)
+function setupWebSocketServer(server: Server) {
+  // Use a different path for WebSockets to avoid conflicts with Vite
+  const wss = new WebSocketServer({
+    server,
+    path: "/socket", // Add a specific path for our WebSocket server
+  });
+
+  // Map to track connected users
+  const connectedUsers = new Map();
+
+  wss.on("connection", (ws) => {
+    let userId = null;
+
+    ws.on("message", (message) => {
+      try {
+        const data = JSON.parse(message);
+
+        // Handle authentication
+        if (data.type === "auth") {
+          userId = data.userId;
+          connectedUsers.set(userId, ws);
+
+          // Send confirmation
+          ws.send(
+            JSON.stringify({
+              type: "auth_success",
+              userId,
+            })
+          );
+
+          console.log(`User ${userId} connected via WebSocket`);
+        }
+
+        // Handle chat messages
+        else if (data.type === "chat_message" && userId) {
+          const { groupId, content } = data;
+
+          // Store message in database asynchronously
+          storage
+            .createGroupMessage({
+              groupId: parseInt(groupId),
+              userId: parseInt(userId),
+              message: content,
+            })
+            .then((message) => {
+              // Broadcast to all group members
+              broadcastToGroupMembers(groupId, {
+                type: "new_message",
+                message,
+              });
+            })
+            .catch((err) => {
+              console.error("Error saving message:", err);
+            });
+        }
+
+        // Handle study session events
+        else if (data.type === "study_session_event" && userId) {
+          const { sessionId, eventType } = data;
+
+          // Broadcast study session events to participants
+          broadcastToSessionParticipants(sessionId, {
+            type: "study_session_update",
+            eventType,
+            sessionId,
+            userId,
+          });
+        }
+
+        // Handle challenge updates
+        else if (data.type === "challenge_update" && userId) {
+          const { challengeId, progress } = data;
+
+          // Update challenge progress
+          storage
+            .updateChallengeProgress(
+              parseInt(challengeId),
+              userId === data.creatorId ? "creator" : "challenged",
+              progress
+            )
+            .then((challenge) => {
+              // Notify the other user in the challenge
+              const otherUserId =
+                userId === challenge.creatorId
+                  ? challenge.challengedId
+                  : challenge.creatorId;
+
+              const otherWs = connectedUsers.get(otherUserId.toString());
+              if (otherWs) {
+                otherWs.send(
+                  JSON.stringify({
+                    type: "challenge_progress",
+                    challenge,
+                  })
+                );
+              }
+            })
+            .catch((err) => {
+              console.error("Error updating challenge:", err);
+            });
+        }
+      } catch (error) {
+        console.error("WebSocket message error:", error);
+      }
+    });
+
+    ws.on("close", () => {
+      if (userId) {
+        console.log(`User ${userId} disconnected`);
+        connectedUsers.delete(userId);
+      }
+    });
+  });
+
+  // Helper function to broadcast to group members
+  function broadcastToGroupMembers(groupId, data) {
+    storage
+      .getGroupMembers(parseInt(groupId))
+      .then((members) => {
+        members.forEach((member) => {
+          const ws = connectedUsers.get(member.userId.toString());
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(data));
+          }
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching group members:", err);
+      });
+  }
+
+  // Helper function to broadcast to session participants
+  function broadcastToSessionParticipants(sessionId, data) {
+    storage
+      .getSessionParticipants(parseInt(sessionId))
+      .then((participants) => {
+        participants.forEach((participant) => {
+          const ws = connectedUsers.get(participant.userId.toString());
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(data));
+          }
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching session participants:", err);
+      });
+  }
 }

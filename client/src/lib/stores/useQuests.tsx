@@ -1,15 +1,15 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Quest, QuestType, QuestDifficulty } from '@/types';
-import { toast } from 'sonner';
-import { useUser } from './useUser';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { Quest, QuestType, QuestDifficulty } from "@/types";
+import { toast } from "sonner";
+import { useUser } from "./useUser";
 
 // Initial daily quests
 const initialDailyQuests: Quest[] = [
   {
-    id: 'daily-1',
-    title: 'Study Session',
-    description: 'Complete a 25-minute study session',
+    id: "daily-1",
+    title: "Study Session",
+    description: "Complete a 25-minute study session",
     type: QuestType.DAILY,
     difficulty: QuestDifficulty.EASY,
     xpReward: 25,
@@ -19,12 +19,13 @@ const initialDailyQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 1
+    maxProgress: 1,
+    subjectId: null,
   },
   {
-    id: 'daily-2',
-    title: 'Note Taking',
-    description: 'Take notes for any subject',
+    id: "daily-2",
+    title: "Note Taking",
+    description: "Take notes for any subject",
     type: QuestType.DAILY,
     difficulty: QuestDifficulty.EASY,
     xpReward: 20,
@@ -34,12 +35,13 @@ const initialDailyQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 1
+    maxProgress: 1,
+    subjectId: null,
   },
   {
-    id: 'daily-3',
-    title: 'Vocabulary Builder',
-    description: 'Learn 5 new vocabulary words',
+    id: "daily-3",
+    title: "Vocabulary Builder",
+    description: "Learn 5 new vocabulary words",
     type: QuestType.DAILY,
     difficulty: QuestDifficulty.MEDIUM,
     xpReward: 35,
@@ -49,16 +51,17 @@ const initialDailyQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 5
-  }
+    maxProgress: 5,
+    subjectId: null,
+  },
 ];
 
 // Initial epic quests
 const initialEpicQuests: Quest[] = [
   {
-    id: 'epic-1',
-    title: 'Knowledge Seeker',
-    description: 'Complete 10 study sessions',
+    id: "epic-1",
+    title: "Knowledge Seeker",
+    description: "Complete 10 study sessions",
     type: QuestType.EPIC,
     difficulty: QuestDifficulty.HARD,
     xpReward: 150,
@@ -68,12 +71,13 @@ const initialEpicQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 10
+    maxProgress: 10,
+    subjectId: null,
   },
   {
-    id: 'epic-2',
-    title: 'Subject Master',
-    description: 'Reach level 5 in any subject',
+    id: "epic-2",
+    title: "Subject Master",
+    description: "Reach level 5 in any subject",
     type: QuestType.EPIC,
     difficulty: QuestDifficulty.VERY_HARD,
     xpReward: 300,
@@ -83,12 +87,13 @@ const initialEpicQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 5
+    maxProgress: 5,
+    subjectId: null,
   },
   {
-    id: 'epic-3',
-    title: 'Consistent Scholar',
-    description: 'Complete 5 daily quests',
+    id: "epic-3",
+    title: "Consistent Scholar",
+    description: "Complete 5 daily quests",
     type: QuestType.EPIC,
     difficulty: QuestDifficulty.MEDIUM,
     xpReward: 100,
@@ -98,17 +103,27 @@ const initialEpicQuests: Quest[] = [
     createdAt: new Date().toISOString(),
     completedAt: null,
     progress: 0,
-    maxProgress: 5
-  }
+    maxProgress: 5,
+    subjectId: null,
+  },
 ];
 
 interface QuestsState {
   dailyQuests: Quest[];
   epicQuests: Quest[];
   lastDailyRefresh: string | null;
-  
+
   // Methods
-  addQuest: (quest: Omit<Quest, 'id' | 'createdAt' | 'completedAt' | 'isCompleted'>) => void;
+  addQuest: (
+    quest: Omit<Quest, "id" | "createdAt" | "completedAt" | "isCompleted">
+  ) => void;
+  removeQuest: (questId: string) => void;
+  editQuest: (
+    questId: string,
+    updates: Partial<
+      Omit<Quest, "id" | "createdAt" | "completedAt" | "isCompleted">
+    >
+  ) => void;
   updateQuestProgress: (questId: string, progress: number) => void;
   completeQuest: (questId: string) => void;
   checkAndRefreshDailyQuests: () => void;
@@ -120,90 +135,152 @@ export const useQuests = create<QuestsState>()(
       dailyQuests: initialDailyQuests,
       epicQuests: initialEpicQuests,
       lastDailyRefresh: new Date().toISOString(),
-      
+
       // Add a new quest
-      addQuest: (quest) => set((state) => {
-        const newQuest: Quest = {
-          ...quest,
-          id: `custom-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          completedAt: null,
-          isCompleted: false
-        };
-        
-        if (quest.type === QuestType.DAILY) {
-          return { dailyQuests: [...state.dailyQuests, newQuest] };
-        } else {
-          return { epicQuests: [...state.epicQuests, newQuest] };
-        }
-      }),
-      
+      addQuest: (quest) =>
+        set((state) => {
+          const newQuest: Quest = {
+            ...quest,
+            id: `custom-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            completedAt: null,
+            isCompleted: false,
+          };
+
+          if (quest.type === QuestType.DAILY) {
+            return { dailyQuests: [...state.dailyQuests, newQuest] };
+          } else {
+            return { epicQuests: [...state.epicQuests, newQuest] };
+          }
+        }),
+
+      // Remove a quest
+      removeQuest: (questId) =>
+        set((state) => {
+          // Check if quest is in daily quests
+          if (state.dailyQuests.some((q) => q.id === questId)) {
+            return {
+              dailyQuests: state.dailyQuests.filter((q) => q.id !== questId),
+            };
+          }
+
+          // Check if quest is in epic quests
+          if (state.epicQuests.some((q) => q.id === questId)) {
+            return {
+              epicQuests: state.epicQuests.filter((q) => q.id !== questId),
+            };
+          }
+
+          return {};
+        }),
+
+      // Edit a quest
+      editQuest: (questId, updates) =>
+        set((state) => {
+          // Check if quest is in daily quests
+          const dailyIndex = state.dailyQuests.findIndex(
+            (q) => q.id === questId
+          );
+          if (dailyIndex >= 0) {
+            const updatedQuests = [...state.dailyQuests];
+            updatedQuests[dailyIndex] = {
+              ...updatedQuests[dailyIndex],
+              ...updates,
+            };
+
+            return { dailyQuests: updatedQuests };
+          }
+
+          // Check if quest is in epic quests
+          const epicIndex = state.epicQuests.findIndex((q) => q.id === questId);
+          if (epicIndex >= 0) {
+            const updatedQuests = [...state.epicQuests];
+            updatedQuests[epicIndex] = {
+              ...updatedQuests[epicIndex],
+              ...updates,
+            };
+
+            return { epicQuests: updatedQuests };
+          }
+
+          return {};
+        }),
+
       // Update quest progress
-      updateQuestProgress: (questId, progress) => set((state) => {
-        // Check in daily quests
-        const dailyIndex = state.dailyQuests.findIndex(q => q.id === questId);
-        if (dailyIndex >= 0) {
-          const newDailyQuests = [...state.dailyQuests];
-          const quest = newDailyQuests[dailyIndex];
-          
-          // Cap progress at max
-          const newProgress = Math.min(progress, quest.maxProgress);
-          
-          // Update progress
-          newDailyQuests[dailyIndex] = {
-            ...quest,
-            progress: newProgress,
-            isCompleted: newProgress >= quest.maxProgress,
-            completedAt: newProgress >= quest.maxProgress ? new Date().toISOString() : quest.completedAt
-          };
-          
-          // Auto-complete quest if reached max progress
-          if (newProgress >= quest.maxProgress && !quest.isCompleted) {
-            // Call completeQuest to give rewards
-            setTimeout(() => get().completeQuest(questId), 100);
+      updateQuestProgress: (questId, progress) =>
+        set((state) => {
+          // Check in daily quests
+          const dailyIndex = state.dailyQuests.findIndex(
+            (q) => q.id === questId
+          );
+          if (dailyIndex >= 0) {
+            const newDailyQuests = [...state.dailyQuests];
+            const quest = newDailyQuests[dailyIndex];
+
+            // Cap progress at max
+            const newProgress = Math.min(progress, quest.maxProgress);
+
+            // Update progress
+            newDailyQuests[dailyIndex] = {
+              ...quest,
+              progress: newProgress,
+              isCompleted: newProgress >= quest.maxProgress,
+              completedAt:
+                newProgress >= quest.maxProgress
+                  ? new Date().toISOString()
+                  : quest.completedAt,
+            };
+
+            // Auto-complete quest if reached max progress
+            if (newProgress >= quest.maxProgress && !quest.isCompleted) {
+              // Call completeQuest to give rewards
+              setTimeout(() => get().completeQuest(questId), 100);
+            }
+
+            return { dailyQuests: newDailyQuests };
           }
-          
-          return { dailyQuests: newDailyQuests };
-        }
-        
-        // Check in epic quests
-        const epicIndex = state.epicQuests.findIndex(q => q.id === questId);
-        if (epicIndex >= 0) {
-          const newEpicQuests = [...state.epicQuests];
-          const quest = newEpicQuests[epicIndex];
-          
-          // Cap progress at max
-          const newProgress = Math.min(progress, quest.maxProgress);
-          
-          // Update progress
-          newEpicQuests[epicIndex] = {
-            ...quest,
-            progress: newProgress,
-            isCompleted: newProgress >= quest.maxProgress,
-            completedAt: newProgress >= quest.maxProgress ? new Date().toISOString() : quest.completedAt
-          };
-          
-          // Auto-complete quest if reached max progress
-          if (newProgress >= quest.maxProgress && !quest.isCompleted) {
-            // Call completeQuest to give rewards
-            setTimeout(() => get().completeQuest(questId), 100);
+
+          // Check in epic quests
+          const epicIndex = state.epicQuests.findIndex((q) => q.id === questId);
+          if (epicIndex >= 0) {
+            const newEpicQuests = [...state.epicQuests];
+            const quest = newEpicQuests[epicIndex];
+
+            // Cap progress at max
+            const newProgress = Math.min(progress, quest.maxProgress);
+
+            // Update progress
+            newEpicQuests[epicIndex] = {
+              ...quest,
+              progress: newProgress,
+              isCompleted: newProgress >= quest.maxProgress,
+              completedAt:
+                newProgress >= quest.maxProgress
+                  ? new Date().toISOString()
+                  : quest.completedAt,
+            };
+
+            // Auto-complete quest if reached max progress
+            if (newProgress >= quest.maxProgress && !quest.isCompleted) {
+              // Call completeQuest to give rewards
+              setTimeout(() => get().completeQuest(questId), 100);
+            }
+
+            return { epicQuests: newEpicQuests };
           }
-          
-          return { epicQuests: newEpicQuests };
-        }
-        
-        return {};
-      }),
-      
+
+          return {};
+        }),
+
       // Complete a quest and grant rewards
       completeQuest: (questId) => {
         // Find the quest
-        const dailyQuest = get().dailyQuests.find(q => q.id === questId);
-        const epicQuest = get().epicQuests.find(q => q.id === questId);
+        const dailyQuest = get().dailyQuests.find((q) => q.id === questId);
+        const epicQuest = get().epicQuests.find((q) => q.id === questId);
         const quest = dailyQuest || epicQuest;
-        
+
         if (!quest || quest.isCompleted) return;
-        
+
         // Grant rewards
         const { addXP, addCoins, addGems } = useUser.getState();
         addXP(quest.xpReward);
@@ -211,7 +288,7 @@ export const useQuests = create<QuestsState>()(
         if (quest.gemReward > 0) {
           addGems(quest.gemReward);
         }
-        
+
         // Show toast notification
         toast.success(
           <div className="flex flex-col">
@@ -227,76 +304,82 @@ export const useQuests = create<QuestsState>()(
           </div>,
           { duration: 5000 }
         );
-        
+
         // Mark quest as completed
         set((state) => {
           if (dailyQuest) {
             const newDailyQuests = [...state.dailyQuests];
-            const index = newDailyQuests.findIndex(q => q.id === questId);
+            const index = newDailyQuests.findIndex((q) => q.id === questId);
             if (index >= 0) {
               newDailyQuests[index] = {
                 ...newDailyQuests[index],
                 isCompleted: true,
                 progress: quest.maxProgress,
-                completedAt: new Date().toISOString()
+                completedAt: new Date().toISOString(),
               };
             }
             return { dailyQuests: newDailyQuests };
           } else if (epicQuest) {
             const newEpicQuests = [...state.epicQuests];
-            const index = newEpicQuests.findIndex(q => q.id === questId);
+            const index = newEpicQuests.findIndex((q) => q.id === questId);
             if (index >= 0) {
               newEpicQuests[index] = {
                 ...newEpicQuests[index],
                 isCompleted: true,
                 progress: quest.maxProgress,
-                completedAt: new Date().toISOString()
+                completedAt: new Date().toISOString(),
               };
             }
             return { epicQuests: newEpicQuests };
           }
           return {};
         });
-        
+
         // If an epic quest for completing daily quests exists, update its progress
         if (dailyQuest) {
           const consistentScholarQuest = get().epicQuests.find(
-            q => q.title === 'Consistent Scholar' && !q.isCompleted
+            (q) => q.title === "Consistent Scholar" && !q.isCompleted
           );
-          
+
           if (consistentScholarQuest) {
-            get().updateQuestProgress(consistentScholarQuest.id, consistentScholarQuest.progress + 1);
+            get().updateQuestProgress(
+              consistentScholarQuest.id,
+              consistentScholarQuest.progress + 1
+            );
           }
         }
       },
-      
+
       // Check and refresh daily quests if needed
-      checkAndRefreshDailyQuests: () => set((state) => {
-        const now = new Date();
-        const lastRefresh = state.lastDailyRefresh ? new Date(state.lastDailyRefresh) : null;
-        
-        // If no refresh has happened or it was yesterday
-        if (!lastRefresh || !isSameDay(now, lastRefresh)) {
-          // Reset daily quests
-          const refreshedQuests = initialDailyQuests.map(quest => ({
-            ...quest,
-            createdAt: new Date().toISOString(),
-            completedAt: null,
-            isCompleted: false,
-            progress: 0
-          }));
-          
-          return {
-            dailyQuests: refreshedQuests,
-            lastDailyRefresh: now.toISOString()
-          };
-        }
-        
-        return {};
-      })
+      checkAndRefreshDailyQuests: () =>
+        set((state) => {
+          const now = new Date();
+          const lastRefresh = state.lastDailyRefresh
+            ? new Date(state.lastDailyRefresh)
+            : null;
+
+          // If no refresh has happened or it was yesterday
+          if (!lastRefresh || !isSameDay(now, lastRefresh)) {
+            // Reset daily quests
+            const refreshedQuests = initialDailyQuests.map((quest) => ({
+              ...quest,
+              createdAt: new Date().toISOString(),
+              completedAt: null,
+              isCompleted: false,
+              progress: 0,
+            }));
+
+            return {
+              dailyQuests: refreshedQuests,
+              lastDailyRefresh: now.toISOString(),
+            };
+          }
+
+          return {};
+        }),
     }),
     {
-      name: 'quests-storage',
+      name: "quests-storage",
     }
   )
 );

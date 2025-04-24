@@ -27,4 +27,6 @@ export default defineConfig({
   },
   // Add support for large models and audio files
   assetsInclude: ["**/*.gltf", "**/*.glb", "**/*.mp3", "**/*.ogg", "**/*.wav"],
+  // Ensure proper base path for production
+  base: "./",
 });

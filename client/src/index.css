@@ -7,47 +7,47 @@
     /* Base Colors */
     --background: 263 85% 7%;
     --foreground: 210 40% 98%;
-    
+
     /* Card Colors */
     --card: 260 60% 12%;
     --card-foreground: 210 40% 98%;
-    
+
     /* Popover Colors */
     --popover: 260 60% 12%;
     --popover-foreground: 210 40% 98%;
-    
+
     /* Primary Colors - Deep Purple */
     --primary: 265 80% 60%;
     --primary-foreground: 210 40% 98%;
-    
+
     /* Secondary Colors - Neon Blue */
     --secondary: 180 100% 60%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    
+
     /* Muted Colors */
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    
+
     /* Accent Colors - Warm Gold */
     --accent: 43 89% 60%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    
+
     /* Destructive Colors */
     --destructive: 0 80% 60%;
     --destructive-foreground: 210 40% 98%;
-    
+
     /* Border, Input, and Ring Colors */
     --border: 265 30% 30%;
     --input: 217.2 32.6% 17.5%;
     --ring: 265 60% 60%;
-    
+
     /* Chart Colors */
     --chart-1: 265 80% 60%;
     --chart-2: 180 100% 60%;
     --chart-3: 43 89% 60%;
     --chart-4: 320 80% 60%;
     --chart-5: 140 70% 50%;
-    
+
     /* Sidebar Colors */
     --sidebar-background: 262 80% 12%;
     --sidebar-foreground: 210 40% 98%;
@@ -57,7 +57,7 @@
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --sidebar-border: 265 30% 25%;
     --sidebar-ring: 265 60% 60%;
-    
+
     /* Border Radius */
     --radius: 0.75rem;
   }
@@ -67,7 +67,7 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
     margin: 0;
@@ -78,13 +78,13 @@
     overflow-x: hidden;
     overflow-y: auto;
   }
-  
+
   /* Hide scrollbar but allow scrolling */
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -96,44 +96,76 @@
     @apply bg-card/50 backdrop-blur-md rounded-lg border border-primary/30 shadow-lg relative overflow-hidden;
     box-shadow: 0 0 15px rgba(153, 69, 255, 0.3), 0 5px 10px rgba(0, 0, 0, 0.2);
   }
-  
+
   .game-card:before {
     content: '';
     @apply absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-60 pointer-events-none;
   }
-  
+
   .game-button {
-    @apply relative rounded-md px-4 py-2 font-medium transition-all duration-200 ease-out
-    bg-gradient-to-r from-primary to-primary/80 text-white 
-    hover:from-primary/90 hover:to-primary/70
-    shadow-[0_0_8px_2px_rgba(153,69,255,0.3)] hover:shadow-[0_0_12px_4px_rgba(153,69,255,0.4)]
-    active:shadow-[0_0_4px_1px_rgba(153,69,255,0.3)] active:scale-95;
+    @apply relative rounded-md px-4 py-2 font-medium transition-all duration-200 ease-out bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 shadow-md active:scale-95;
   }
-  
+
   .game-button-secondary {
-    @apply game-button bg-gradient-to-r from-secondary to-secondary/80
-    shadow-[0_0_8px_2px_rgba(20,241,149,0.3)] hover:shadow-[0_0_12px_4px_rgba(20,241,149,0.4)]
-    active:shadow-[0_0_4px_1px_rgba(20,241,149,0.3)];
+    @apply game-button bg-gradient-to-r from-secondary to-secondary/80;
   }
-  
+
   .game-button-accent {
-    @apply game-button bg-gradient-to-r from-accent to-accent/80
-    text-black shadow-[0_0_8px_2px_rgba(255,187,56,0.3)] hover:shadow-[0_0_12px_4px_rgba(255,187,56,0.4)]
-    active:shadow-[0_0_4px_1px_rgba(255,187,56,0.3)];
+    @apply game-button bg-gradient-to-r from-accent to-accent/80 text-black;
   }
 
   .nav-icon {
-    @apply relative flex items-center justify-center w-12 h-12 rounded-full 
-    bg-gradient-to-br from-primary/50 to-primary/20
-    hover:from-primary/70 hover:to-primary/30
-    text-white transition-all duration-200
-    shadow-[0_0_8px_rgba(153,69,255,0.4)] hover:shadow-[0_0_12px_rgba(153,69,255,0.6)];
+    @apply relative flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary/50 to-primary/20 hover:from-primary/70 hover:to-primary/30 text-white transition-all duration-200 shadow-md;
   }
-  
+
   .nav-icon.active {
-    @apply from-primary to-primary/80 
-    shadow-[0_0_12px_rgba(153,69,255,0.6)] scale-110;
+    @apply from-primary to-primary/80 shadow-lg scale-110;
   }
+}
+
+/* Then add the custom shadows outside the @apply blocks */
+.game-button {
+  box-shadow: 0 0 8px 2px rgba(153, 69, 255, 0.3);
+}
+
+.game-button:hover {
+  box-shadow: 0 0 12px 4px rgba(153, 69, 255, 0.4);
+}
+
+.game-button:active {
+  box-shadow: 0 0 4px 1px rgba(153, 69, 255, 0.3);
+}
+
+.game-button-secondary {
+  box-shadow: 0 0 8px 2px rgba(20, 241, 149, 0.3);
+}
+
+.game-button-secondary:hover {
+  box-shadow: 0 0 12px 4px rgba(20, 241, 149, 0.4);
+}
+
+.game-button-secondary:active {
+  box-shadow: 0 0 4px 1px rgba(20, 241, 149, 0.3);
+}
+
+.game-button-accent {
+  box-shadow: 0 0 8px 2px rgba(255, 187, 56, 0.3);
+}
+
+.game-button-accent:hover {
+  box-shadow: 0 0 12px 4px rgba(255, 187, 56, 0.4);
+}
+
+.game-button-accent:active {
+  box-shadow: 0 0 4px 1px rgba(255, 187, 56, 0.3);
+}
+
+.nav-icon {
+  box-shadow: 0 0 8px rgba(153, 69, 255, 0.4);
+}
+
+.nav-icon:hover {
+  box-shadow: 0 0 12px rgba(153, 69, 255, 0.6);
 }
 
 /* Animation Classes */
@@ -141,30 +173,51 @@
   .animate-float {
     animation: float 5s ease-in-out infinite;
   }
-  
+
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+
+    100% {
+      transform: translateY(0px);
+    }
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
-  
+
   @keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3); }
-    50% { box-shadow: 0 0 15px 0 rgba(153, 69, 255, 0.6); }
-    100% { box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3); }
+    0% {
+      box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 15px 0 rgba(153, 69, 255, 0.6);
+    }
+
+    100% {
+      box-shadow: 0 0 5px 0 rgba(153, 69, 255, 0.3);
+    }
   }
-  
+
   .animate-subtle-rotate {
     animation: subtle-rotate 10s linear infinite;
   }
-  
+
   @keyframes subtle-rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 
@@ -179,4 +232,341 @@ canvas {
   width: 100% !important;
   height: 100% !important;
   touch-action: none;
+}
+
+/* Game-specific animations and effects */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes rotate-glow {
+  0% {
+    transform: rotate(0deg);
+    filter: hue-rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes bounce-slight {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes scale-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Game card animations */
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Button Hover Effects */
+button,
+a {
+  transition: all 0.2s ease;
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.97);
+}
+
+.game-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.game-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.game-button:hover::after {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.game-button:active::after {
+  opacity: 0.5;
+}
+
+/* Gaming Nav Item Effects */
+.nav-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.nav-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-icon.active {
+  background-color: rgba(var(--primary-rgb), 0.2);
+}
+
+/* Game Card */
+.game-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  transition: all 0.3s ease;
+}
+
+.game-card.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+  z-index: 1;
+}
+
+.game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2),
+    0 0 15px -5px rgba(var(--accent-rgb), 0.3);
+}
+
+.game-card:active {
+  transform: translateY(-2px);
+}
+
+/* Badge animation */
+.badge {
+  position: relative;
+}
+
+.badge.animate-pulse::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: #ff0000;
+  animation: scale-pulse 1s infinite;
+}
+
+/* Level-up effect */
+.level-up {
+  animation: scale-pulse 0.5s ease, shake 0.5s ease;
+}
+
+/* Add pixel gaming font */
+@font-face {
+  font-family: 'PixelFont';
+  src: url('/fonts/pixel.woff2') format('woff2');
+}
+
+:root {
+  --primary: #4f46e5;
+  --primary-rgb: 79, 70, 229;
+  --secondary: #6366f1;
+  --secondary-rgb: 99, 102, 241;
+  --accent: #3b82f6;
+  --accent-rgb: 59, 130, 246;
+
+  --game-bg-1: #0f172a;
+  --game-bg-2: #1e293b;
+  --game-highlight: #2563eb;
+}
+
+.pixel-text {
+  font-family: 'PixelFont', monospace;
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.game-glow {
+  text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+}
+
+body {
+  background-color: #0f172a;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Combat effects */
+.combat-hit {
+  animation: shake 0.3s ease-in-out;
+}
+
+.combat-crit {
+  animation: shake 0.5s ease-in-out, scale-pulse 0.5s ease-in-out;
+}
+
+/* Progress bar effect */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%);
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+/* Notification effect */
+@keyframes notification {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  10% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  90% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+.game-notification {
+  animation: notification 3s ease-in-out;
+}
+
+/* XP and reward effects */
+@keyframes xp-gain {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+.xp-gained {
+  animation: xp-gain 1.5s ease-out forwards;
 }

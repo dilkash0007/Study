@@ -28,15 +28,15 @@ export interface Subject {
 
 // Quest-related types
 export enum QuestType {
-  DAILY = 'daily',
-  EPIC = 'epic'
+  DAILY = "daily",
+  EPIC = "epic",
 }
 
 export enum QuestDifficulty {
-  EASY = 'easy',
-  MEDIUM = 'medium',
-  HARD = 'hard',
-  VERY_HARD = 'very_hard'
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
+  VERY_HARD = "very_hard",
 }
 
 export interface Quest {
@@ -53,14 +53,15 @@ export interface Quest {
   completedAt: string | null;
   progress: number;
   maxProgress: number;
+  subjectId: string | null;
 }
 
 // Achievement-related types
 export enum AchievementCategory {
-  STUDY = 'Study',
-  QUEST = 'Quest',
-  LEVEL = 'Level',
-  STREAK = 'Streak'
+  STUDY = "Study",
+  QUEST = "Quest",
+  LEVEL = "Level",
+  STREAK = "Streak",
 }
 
 export interface AchievementCondition {
